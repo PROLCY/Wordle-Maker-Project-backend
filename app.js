@@ -5,6 +5,7 @@ const session = require('express-session');
 const dotenv = require('dotenv');
 const path = require('path');
 
+const { sequelize } = require('./models');
 const connect = require('./schemas');
 
 dotenv.config();
@@ -14,6 +15,13 @@ const makeRouter = require('./routes/make');
 const app = express();
 app.set('port', process.env.PORT || 4000);
 connect();
+sequelize.sync({ force: false })
+    .then (() => {
+        console.log('데이터베이스 연결 성공');
+    })
+    .catch((err) => {
+        console.error(err);
+    });
 
 app.use(morgan('dev'));
 app.use('/', express.static(path.join(__dirname, 'build')));
