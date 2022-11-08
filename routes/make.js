@@ -12,21 +12,21 @@ router.post('/duplicated', async (req, res) => {
                 nickname: nickname
             }
         });
-        if( maker == null )
+        if( maker === null )
             res.send('not-duplicated');
         else
             res.send("duplicated");
     } catch (error) {
         console.error(error);
     }
-})
+});
 
 router.post('/register', async (req, res) => {
     try {
         const nickname = req.body.nickname;
         const correct_word = req.body.correct_word;
         console.log(nickname, correct_word);
-        const URL = 'http://localhost:3000/' + nickname + '/' + correct_word;
+        const URL = 'http://localhost:3000/solve/' + nickname;
 
         const maker = await Maker.create({
             nickname: nickname,
@@ -37,9 +37,7 @@ router.post('/register', async (req, res) => {
             correct_word: correct_word,
             maker: maker.id,
         });
-        res.send({
-            url: URL,
-        });
+        res.send(URL);
     } catch (error) {
         console.error(error);
     }
