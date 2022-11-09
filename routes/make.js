@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const Word = require('../schemas/word');
 const { Maker, Url } = require('../models');
 
 const router = express.Router();
@@ -16,6 +17,24 @@ router.post('/duplicated', async (req, res) => {
             res.send('not-duplicated');
         else
             res.send("duplicated");
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+router.post('/exist', async (req, res) => {
+    try {
+        const wordFound = await Word.find({ word: req.body.word });
+        
+        if ( !wordFound.length )
+            res.send({
+                exist: false
+            })
+        else {
+            res.send({
+                exist: true
+            })
+        }
     } catch (error) {
         console.error(error);
     }
