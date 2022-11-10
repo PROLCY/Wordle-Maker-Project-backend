@@ -5,6 +5,33 @@ const { Maker, Url } = require('../models');
 
 const router = express.Router();
 
+router.get('/', async (req, res) => {
+    try {
+        if ( !req.session.maker ) {
+            res.send('no-session');
+            return;
+        }
+        const maker = await Maker.findOne({
+            attributes: ['id'],
+            where: {
+                nickname: req.session.maker,
+            }
+        });
+        const url = await Url.findOne({
+            attributes: ['url', 'correct_word'],
+            where: {
+                maker: maker.id,
+            }
+        });
+        res.send({
+            url: url.url,
+            correct_word: url.correct_word,
+        });
+    } catch (error) {
+        console.error(error);
+    }
+});
+
 router.post('/duplicated', async (req, res) => {
     try {
         const nickname = req.body.nickname;
@@ -56,6 +83,10 @@ router.post('/register', async (req, res) => {
             correct_word: correct_word,
             maker: maker.id,
         });
+
+        req.session.maker = nickname;
+        console.log("session saved", req.session.maker);    
+
         res.send(URL);
     } catch (error) {
         console.error(error);
