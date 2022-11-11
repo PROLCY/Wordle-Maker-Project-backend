@@ -1,13 +1,48 @@
 const express = require('express');
 const axios = require('axios');
 const Word = require('../schemas/word');
-const { Solver, Url } = require('../models');
+const { Maker, Solver, Url } = require('../models');
 
 let wordList = [];
 let keyState = {};
 let wordCorrect;
 
 const router = express.Router();
+
+router.get('/:maker', async (req, res) => {
+    try {
+        console.log(req.session);
+        const maker = await Maker.findOne({
+            attributes: ['id'],
+            where: {
+                nickname: req.params.maker,
+            }
+        });
+        const url = await Url.findOne({
+            attributes: ['id', 'correct_word'],
+            where: {
+                maker: maker.id,
+            }
+        });
+        if ( req.session.solver === undefined || !req.session.solver[url.id] ) {
+            res.send('no-session');
+            return;
+        }
+        const solver = await Solver.findOne({
+            attributes: ['word_list'],
+            where: {
+                nickname: req.session.solver[url.id],
+            }
+        });
+        console.log("correct_word:", url.correct_word, "word_list", solver.word_list);
+        res.send({
+            wordCorrect: url.correct_word,
+            //wordList: solver.word_list,
+        });
+    } catch (error) {
+        console.error(error);
+    }
+});
 
 router.post('/duplicated', async (req, res) => {
     try {
@@ -41,7 +76,13 @@ router.post('/register', async (req, res) => {
             nickname: nickname,
             url: url.id,
         });
-        res.status(200);
+
+        if ( req.session.solver === undefined )
+            req.session.solver = [];
+        req.session.solver [url.id]= nickname;
+        console.log('session saved', req.session.solver[url.id]);
+
+        res.end();
     } catch (error) {
         console.error(error);
     }
@@ -61,12 +102,10 @@ router.get('/:maker/correct', async (req, res) => {
     });
 });
 
-router.post('/add', (req, res) => {
+router.post('/add', async (req, res) => {
     // solver 테이블에 등록
-    const newWord = req.body.newWord;
     keyState = req.body.keyState;
-    wordList.push(newWord);
-    console.log(wordList);
+    
     res.status(200);
 });
 
