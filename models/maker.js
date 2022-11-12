@@ -10,7 +10,11 @@ module.exports = class Maker extends Sequelize.Model {
             },
             url: {
                 type: Sequelize.STRING(200),
-                allowNull: true,
+                allowNull: false,
+            },
+            correct_word: {
+                type: Sequelize.STRING(20),
+                allowNull: false,
             },
             created_at: {
                 type: Sequelize.DATE,
@@ -29,6 +33,6 @@ module.exports = class Maker extends Sequelize.Model {
         });
     }
     static associate(db) {
-        db.Maker.hasOne(db.Url, { foreignKey: 'maker', sourceKey: 'id' });
+        db.Maker.hasMany(db.Solver, { foreignKey: 'maker', sourceKey: 'nickname' });
     }
 };

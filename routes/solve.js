@@ -1,55 +1,55 @@
 const express = require('express');
 const axios = require('axios');
 const Word = require('../schemas/word');
-const { Maker, Solver, Url } = require('../models');
-
-let wordList = [];
-let keyState = {};
-let wordCorrect;
+const { Maker, Solver } = require('../models');
 
 const router = express.Router();
 
 router.get('/:maker', async (req, res) => {
     try {
         console.log(req.session);
-        const maker = await Maker.findOne({
-            attributes: ['id'],
-            where: {
-                nickname: req.params.maker,
-            }
-        });
-        const url = await Url.findOne({
-            attributes: ['id', 'correct_word'],
-            where: {
-                maker: maker.id,
-            }
-        });
-        if ( req.session.solver === undefined || !req.session.solver[url.id] ) {
+        if ( req.session.solver === undefined || !req.session.solver[req.params.maker] ) {
             res.send('no-session');
             return;
         }
-        const solver = await Solver.findOne({
-            attributes: ['word_list'],
+        const maker = await Maker.findOne({
+            attributes: ['correct_word'],
             where: {
-                nickname: req.session.solver[url.id],
-            }
+                nickname: req.params.maker,
+            },
+            include: [{
+                model: Solver,
+                attributes: ['word_list', 'key_state'],
+                where: {
+                    nickname: req.session.solver[req.params.maker],
+                }
+            }],
         });
-        console.log("correct_word:", url.correct_word, "word_list", solver.word_list);
+        let word_list = maker.Solvers[0].word_list;
+        let key_state = maker.Solvers[0].key_state;
+        if ( word_list === undefined)
+            word_list = '[]';
+        if ( key_state === undefined )
+            key_state = '{}';
+
+        console.log("correct_word:", maker.correct_word, "word_list", word_list);
         res.send({
-            wordCorrect: url.correct_word,
-            //wordList: solver.word_list,
+            wordCorrect: maker.correct_word,
+            wordList: JSON.parse(word_list),
+            keyState: JSON.parse(key_state),
         });
     } catch (error) {
         console.error(error);
     }
 });
 
-router.post('/duplicated', async (req, res) => {
+router.post('/:maker/duplicated', async (req, res) => {
     try {
         const nickname = req.body.nickname;
         const sovler = await Solver.findOne({
             where: {
-                nickname: nickname
+                nickname: nickname,
+                maker: req.params.maker,
             }
         });
         if( sovler === null )
@@ -61,52 +61,65 @@ router.post('/duplicated', async (req, res) => {
     }
 });
 
-router.post('/register', async (req, res) => {
+router.post('/:maker/register', async (req, res) => {
     try {
         const nickname = req.body.nickname;
-        console.log(nickname, req.body.url);
+        console.log(nickname, req.params.maker);
 
-        const url = await Url.findOne({
-            attributes: ['id'],
+        const maker = await Maker.findOne({
+            attributes: ['correct_word'],
             where: {
-                url: req.body.url
+                nickname: req.params.maker,
             }
-        })
-        const solver = await Solver.create({
-            nickname: nickname,
-            url: url.id,
         });
 
-        if ( req.session.solver === undefined )
-            req.session.solver = [];
-        req.session.solver [url.id]= nickname;
-        console.log('session saved', req.session.solver[url.id]);
+        const solver = await Solver.create({
+            nickname: nickname,
+            maker: req.params.maker,
+        });
 
-        res.end();
+        await maker.addSolver(solver);
+
+        if ( req.session.solver === undefined )
+            req.session.solver = {};
+        req.session.solver [req.params.maker]= nickname;
+        console.log('session saved', req.session.solver[req.params.maker]);
+
+        res.send({
+            wordCorrect: maker.correct_word
+        });
     } catch (error) {
         console.error(error);
     }
 });
 
-router.get('/:maker/correct', async (req, res) => {
-    const url = await Url.findOne({
-        attributes: ['correct_word', 'id'],
-        where: {
-            url: `http://localhost:3000/solve/${req.params.maker}`
-        }
-    })
-    res.send({
-        wordCorrect: url.correct_word,
-        /*wordList: url.wordList,
-        keyState: keyState*/
-    });
-});
-
-router.post('/add', async (req, res) => {
+router.post('/:maker/add', async (req, res) => {
     // solver 테이블에 등록
-    keyState = req.body.keyState;
+    const solver = await Solver.findOne({
+        attributes: ['word_list', 'key_state'],
+        where: {
+            nickname: req.session.solver[req.params.maker],
+        }
+    });
+    let word_list = JSON.parse(solver.word_list);
+    let key_state = JSON.parse(solver.key_state);
+    if ( word_list === null )
+        word_list = [];
+    word_list.push(req.body.newWord);
+    key_state = req.body.keyState;
     
-    res.status(200);
+    word_list = JSON.stringify(word_list);
+    key_state = JSON.stringify(key_state);
+    await Solver.update({
+        word_list: word_list,
+        key_state: key_state,
+    }, {
+        where: {
+            nickname: req.session.solver[req.params.maker],
+        }
+    });
+    console.log(word_list, key_state);
+    res.end();
 });
 
 router.post('/exist', async (req, res) => {

@@ -8,7 +8,11 @@ module.exports = class Solver extends Sequelize.Model {
                 allowNull: false,
             },
             word_list: {
-                type: Sequelize.STRING(200),
+                type: Sequelize.TEXT,
+                allowNull: true,
+            },
+            key_state: {
+                type: Sequelize.TEXT,
                 allowNull: true,
             },
             created_at: {
@@ -28,6 +32,6 @@ module.exports = class Solver extends Sequelize.Model {
         });
     }
     static associate(db) {
-        db.Solver.belongsTo(db.Url, { foreignKey: 'url', targetKey: 'id' });
+        db.Solver.belongsTo(db.Maker, { foreignKey: 'maker', targetKey: 'nickname' });
     }
 };

@@ -1,6 +1,5 @@
 const Sequelize = require('sequelize');
 const Maker = require('./maker');
-const Url = require('./url');
 const Solver = require('./solver');
 
 const env = process.env.NODE_ENV || 'development';
@@ -12,15 +11,12 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
 db.sequelize = sequelize;
 
 db.Maker = Maker;
-db.Url = Url;
 db.Solver = Solver;
 
 Maker.init(sequelize);
-Url.init(sequelize);
 Solver.init(sequelize);
 
 Maker.associate(db);
-Url.associate(db);
 Solver.associate(db);
 
 module.exports = db;

@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const Word = require('../schemas/word');
-const { Maker, Url } = require('../models');
+const { Maker } = require('../models');
 
 const router = express.Router();
 
@@ -12,20 +12,14 @@ router.get('/', async (req, res) => {
             return;
         }
         const maker = await Maker.findOne({
-            attributes: ['id'],
+            attributes: ['url', 'correct_word'],
             where: {
                 nickname: req.session.maker,
             }
         });
-        const url = await Url.findOne({
-            attributes: ['url', 'correct_word'],
-            where: {
-                maker: maker.id,
-            }
-        });
         res.send({
-            url: url.url,
-            correct_word: url.correct_word,
+            url: maker.url,
+            correct_word: maker.correct_word,
         });
     } catch (error) {
         console.error(error);
@@ -77,11 +71,7 @@ router.post('/register', async (req, res) => {
         const maker = await Maker.create({
             nickname: nickname,
             url: URL,
-        });
-        const url = await Url.create({
-            url: URL,
             correct_word: correct_word,
-            maker: maker.id,
         });
 
         req.session.maker = nickname;
