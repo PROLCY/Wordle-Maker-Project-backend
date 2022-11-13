@@ -12,6 +12,7 @@ dotenv.config();
 const indexRouter = require('./routes');
 const solveRouter = require('./routes/solve');
 const makeRouter = require('./routes/make');
+const loadRouter = require('./routes/load');
 const app = express();
 app.set('port', process.env.PORT || 4000);
 connect();
@@ -42,6 +43,7 @@ app.use(session({
 app.use('/', indexRouter);
 app.use('/solve', solveRouter);
 app.use('/make', makeRouter);
+app.use('/load', loadRouter);
 
 app.use((req, res, next) => {
     res.status(404).send('Not Found');

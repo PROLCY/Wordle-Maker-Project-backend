@@ -27,9 +27,9 @@ router.get('/:maker', async (req, res) => {
         });
         let word_list = maker.Solvers[0].word_list;
         let key_state = maker.Solvers[0].key_state;
-        if ( word_list === undefined)
+        if ( word_list === null )
             word_list = '[]';
-        if ( key_state === undefined )
+        if ( key_state === null )
             key_state = '{}';
 
         console.log("correct_word:", maker.correct_word, "word_list", word_list);
