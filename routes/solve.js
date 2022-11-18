@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const Word = require('../schemas/word');
 const { Maker, Solver } = require('../models');
+const { getSolvers } = require('../function');
 
 const router = express.Router();
 
@@ -99,6 +100,7 @@ router.post('/:maker/add', async (req, res) => {
         attributes: ['word_list', 'key_state'],
         where: {
             nickname: req.session.solver[req.params.maker],
+            maker: req.params.maker,
         }
     });
     let word_list = JSON.parse(solver.word_list);
@@ -107,6 +109,7 @@ router.post('/:maker/add', async (req, res) => {
         word_list = [];
     word_list.push(req.body.newWord);
     key_state = req.body.keyState;
+
     
     word_list = JSON.stringify(word_list);
     key_state = JSON.stringify(key_state);
@@ -116,8 +119,11 @@ router.post('/:maker/add', async (req, res) => {
     }, {
         where: {
             nickname: req.session.solver[req.params.maker],
+            maker: req.params.maker,
         }
     });
+    req.app.get('io').of('/loader').to(req.params.maker).emit('enter', await getSolvers(req.params.maker));
+
     console.log(word_list, key_state);
     res.end();
 });

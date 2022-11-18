@@ -2,29 +2,9 @@ const express = require('express');
 const axios = require('axios');
 const Word = require('../schemas/word');
 const { Maker, Solver } = require('../models');
+const { getSolvers } = require('../function');
 
 const router = express.Router();
-
-const getSolvers = async ( makerNickname ) => {
-    const maker = await Maker.findOne({
-        where: {
-            nickname: makerNickname,
-        },
-        include: [{
-            model: Solver,
-            attributes: ['nickname', 'word_list'],
-        }]
-    });
-    const solvers = maker.Solvers.map(
-        solver => ({
-            nickname: [solver.nickname.split('').map(nickname => ({
-                text: nickname,
-                state: 'filled',
-            }))],
-            wordList: solver.word_list === null ? [] : JSON.parse(solver.word_list),
-        }));
-    return solvers;
-};
 
 router.get('/', async (req, res) => {
     try {
@@ -32,7 +12,10 @@ router.get('/', async (req, res) => {
             res.send('no-session');
             return;
         }
-        res.send(await getSolvers(req.session.maker));
+        res.send({
+            maker: req.session.maker,
+            solvers: await getSolvers(req.session.maker)
+        });
     } catch (error) {
         console.error(error);
     }
