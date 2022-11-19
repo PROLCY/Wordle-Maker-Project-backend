@@ -86,6 +86,8 @@ router.post('/:maker/register', async (req, res) => {
         req.session.solver [req.params.maker]= nickname;
         console.log('session saved', req.session.solver[req.params.maker]);
 
+        req.app.get('io').of('/loader').to(req.params.maker).emit('enter', await getSolvers(req.params.maker));
+
         res.send({
             wordCorrect: maker.correct_word
         });
@@ -94,7 +96,7 @@ router.post('/:maker/register', async (req, res) => {
     }
 });
 
-router.post('/:maker/add', async (req, res) => {
+router.post('/:maker/enter', async (req, res) => {
     // solver 테이블에 등록
     const solver = await Solver.findOne({
         attributes: ['word_list', 'key_state'],
@@ -107,7 +109,7 @@ router.post('/:maker/add', async (req, res) => {
     let key_state = JSON.parse(solver.key_state);
     if ( word_list === null )
         word_list = [];
-    word_list.push(req.body.newWord);
+    word_list.splice(word_list.length - 1, 1, req.body.newWord);
     key_state = req.body.keyState;
 
     
@@ -125,6 +127,42 @@ router.post('/:maker/add', async (req, res) => {
     req.app.get('io').of('/loader').to(req.params.maker).emit('enter', await getSolvers(req.params.maker));
 
     console.log(word_list, key_state);
+    res.end();
+});
+
+router.post('/:maker/typing', async (req, res) => {
+    // solver 테이블에 등록
+    const solver = await Solver.findOne({
+        attributes: ['word_list', 'key_state'],
+        where: {
+            nickname: req.session.solver[req.params.maker],
+            maker: req.params.maker,
+        }
+    });
+    let word_list = JSON.parse(solver.word_list);
+    console.log(req.body.newWord, req.body.listIndex);
+    if ( word_list === null )
+        word_list = [];
+    console.log(word_list.length);
+    if ( word_list.length === req.body.listIndex )
+        word_list.push(req.body.newWord);
+    else if ( word_list.length > req.body.listIndex)
+        word_list.splice(req.body.listIndex, 1, req.body.newWord);
+
+    word_list = JSON.stringify(word_list);
+
+    await Solver.update({
+        word_list: word_list,
+    }, {
+        where: {
+            nickname: req.session.solver[req.params.maker],
+            maker: req.params.maker,
+        }
+    });
+
+    req.app.get('io').of('/loader').to(req.params.maker).emit('enter', await getSolvers(req.params.maker));
+
+    console.log(word_list);
     res.end();
 });
 

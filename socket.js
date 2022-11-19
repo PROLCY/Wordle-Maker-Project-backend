@@ -14,10 +14,17 @@ module.exports = (server, app) => {
         const maker = socket.handshake.query.maker;
         console.log(maker);
         socket.join(maker);
-        socket.interval = setInterval(() => {
-            socket.to(maker).emit('news', 'chat');
-        }, 3000);
-        
+
+        socket.on('backspace', (data) => {
+            console.log('loader/backspace', data);
+            socket.emit('delete', data);
+        });
+
+        socket.on('letter', (data) => {
+            socket.to(maker).emit('add', data);
+        })
+        //req.app.get('io').of('/loader').to(req.params.maker).emit('enter', await getSolvers(req.params.maker));
+
         socket.on('disconnect', () => {
             console.log('loader 네임스페이스 해제');
             socket.leave(maker);
