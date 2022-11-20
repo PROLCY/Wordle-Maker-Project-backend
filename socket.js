@@ -15,14 +15,10 @@ module.exports = (server, app) => {
         console.log(maker);
         socket.join(maker);
 
-        socket.on('backspace', (data) => {
-            console.log('loader/backspace', data);
-            socket.emit('delete', data);
+        socket.on('typing', (data) => {
+            console.log('typing');
+            socket.to(data.room).emit('typing', data.info);
         });
-
-        socket.on('letter', (data) => {
-            socket.to(maker).emit('add', data);
-        })
         //req.app.get('io').of('/loader').to(req.params.maker).emit('enter', await getSolvers(req.params.maker));
 
         socket.on('disconnect', () => {

@@ -38,6 +38,7 @@ router.get('/:maker', async (req, res) => {
             wordCorrect: maker.correct_word,
             wordList: JSON.parse(word_list),
             keyState: JSON.parse(key_state),
+            nickname: req.session.solver[req.params.maker],
         });
     } catch (error) {
         console.error(error);
