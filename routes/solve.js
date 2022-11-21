@@ -9,10 +9,10 @@ const router = express.Router();
 router.get('/:maker', async (req, res) => {
     try {
         console.log(req.session);
-        if ( req.session.solver === undefined || !req.session.solver[req.params.maker] ) {
+        //if ( req.session.solver === undefined || !req.session.solver[req.params.maker] ) {
             res.send('no-session');
             return;
-        }
+        //}
         const maker = await Maker.findOne({
             attributes: ['correct_word'],
             where: {
@@ -83,7 +83,7 @@ router.post('/:maker/register', async (req, res) => {
         await maker.addSolver(solver);
 
         if ( req.session.solver === undefined )
-            req.session.solver = {};
+           req.session.solver = {};
         req.session.solver [req.params.maker]= nickname;
         console.log('session saved', req.session.solver[req.params.maker]);
 
@@ -134,7 +134,7 @@ router.post('/:maker/enter', async (req, res) => {
 router.post('/:maker/typing', async (req, res) => {
     // solver 테이블에 등록
     const solver = await Solver.findOne({
-        attributes: ['word_list', 'key_state'],
+        attributes: ['word_list'],
         where: {
             nickname: req.session.solver[req.params.maker],
             maker: req.params.maker,

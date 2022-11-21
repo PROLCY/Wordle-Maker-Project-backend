@@ -20,3 +20,17 @@ exports.getSolvers = async function  ( makerNickname ) {
         }));
     return solvers;
 };
+
+exports.addSolver = async function ( makerNickname, data ) {
+    let  solvers = await module.exports.getSolvers(makerNickname);
+    const solver = solvers.find(solver => 
+        solver.nickname[0].map(info => info.text).join('') === data.nickname
+    );
+    const solverIndex = solvers.indexOf(solver);
+    if ( solver.wordList.length === data.listIndex )
+        solver.wordList.push(data.word);
+    else 
+        solver.wordList.splice(data.listIndex, 1, data.word);
+    solvers[solverIndex] = solver;
+    return solvers;
+};
