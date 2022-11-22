@@ -9,10 +9,10 @@ const router = express.Router();
 router.get('/:maker', async (req, res) => {
     try {
         console.log(req.session);
-        //if ( req.session.solver === undefined || !req.session.solver[req.params.maker] ) {
+        if ( req.session.solver === undefined || !req.session.solver[req.params.maker] ) {
             res.send('no-session');
             return;
-        //}
+        }
         const maker = await Maker.findOne({
             attributes: ['correct_word'],
             where: {
@@ -28,17 +28,45 @@ router.get('/:maker', async (req, res) => {
         });
         let word_list = maker.Solvers[0].word_list;
         let key_state = maker.Solvers[0].key_state;
+
+        word_list = JSON.parse(word_list);
+        key_state = JSON.parse(key_state);
+
         if ( word_list === null )
-            word_list = '[]';
+            word_list = [[]];
         if ( key_state === null )
-            key_state = '{}';
+            key_state = {};
+
+        let last_word, listIndex;
+
+        console.log("word_list", word_list);
+        console.log("word_list.length:", word_list.length);
+        console.log("element:", word_list[word_list.length - 1]);
+        
+        if ( word_list[word_list.length - 1].length === 0) {
+            console.log('1');
+            listIndex = 0;
+            last_word = [];
+        }
+        else if ( word_list[word_list.length - 1][0].state === 'filled' ) {
+            listIndex = word_list.length - 1;
+            last_word = word_list[word_list.length - 1];
+        }
+        else {
+            listIndex = word_list.length;
+            last_word = [];
+        }
+
+        console.log("last_word:", last_word);
 
         console.log("correct_word:", maker.correct_word, "word_list", word_list);
         res.send({
             wordCorrect: maker.correct_word,
-            wordList: JSON.parse(word_list),
-            keyState: JSON.parse(key_state),
+            wordList: word_list,
+            keyState: key_state,
+            lastWord: last_word,
             nickname: req.session.solver[req.params.maker],
+            listIndex: listIndex,
         });
     } catch (error) {
         console.error(error);
