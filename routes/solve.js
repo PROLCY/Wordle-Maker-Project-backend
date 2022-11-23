@@ -44,8 +44,7 @@ router.get('/:maker', async (req, res) => {
         console.log("element:", word_list[word_list.length - 1]);
         
         if ( word_list[word_list.length - 1].length === 0) {
-            console.log('1');
-            listIndex = 0;
+            listIndex = word_list.length - 1;
             last_word = [];
         }
         else if ( word_list[word_list.length - 1][0].state === 'filled' ) {
