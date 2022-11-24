@@ -1,5 +1,4 @@
 const express = require('express');
-const axios = require('axios');
 const Word = require('../schemas/word');
 const { Maker, Solver } = require('../models');
 const { getSolvers } = require('../function');
@@ -10,7 +9,15 @@ router.get('/:maker', async (req, res) => {
     try {
         console.log(req.session);
         if ( req.session.solver === undefined || !req.session.solver[req.params.maker] ) {
-            res.send('no-session');
+            const maker = await Maker.findOne({
+                where: {
+                    nickname: req.params.maker,
+                },
+            });
+            if ( maker === null ) 
+                res.send('Not Found');
+            else
+                res.send('no-session');
             return;
         }
         const maker = await Maker.findOne({
