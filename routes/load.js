@@ -14,7 +14,6 @@ router.get('/', async (req, res) => {
         }
         res.send({
             maker: req.session.maker,
-            solvers: await getSolvers(req.session.maker)
         });
     } catch (error) {
         console.error(error);
@@ -24,15 +23,17 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         req.session.maker = req.body.makerNickname;
+        console.log(req.body.makerNickname);
         res.send(await getSolvers(req.body.makerNickname));
     } catch (error) {
         console.error(error);
     }
-})
+});
 
 router.post('/exist', async (req, res) => {
     try {
         const nickname = req.body.nickname;
+        console.log(nickname);
         const maker = await Maker.findOne({
             where: {
                 nickname: nickname
@@ -47,5 +48,18 @@ router.post('/exist', async (req, res) => {
     }
 });
 
+router.delete('/delete/:maker', async (req, res) => {
+    try {
+        req.session.maker = null;
+        await Maker.destroy({
+            where: {
+                nickname: req.params.maker,
+            }
+        });
+        res.end();
+    } catch (error) {
+        console.error(error);
+    }
+});
 
 module.exports = router;

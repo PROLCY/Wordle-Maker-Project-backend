@@ -8,33 +8,30 @@ const router = express.Router();
 router.get('/:maker', async (req, res) => {
     try {
         console.log(req.session);
-        if ( req.session.solver === undefined || !req.session.solver[req.params.maker] ) {
-            const maker = await Maker.findOne({
-                where: {
-                    nickname: req.params.maker,
-                },
-            });
-            if ( maker === null ) 
-                res.send('Not Found');
-            else
-                res.send('no-session');
-            return;
-        }
         const maker = await Maker.findOne({
-            attributes: ['correct_word'],
             where: {
                 nickname: req.params.maker,
             },
-            include: [{
-                model: Solver,
-                attributes: ['word_list', 'key_state'],
-                where: {
-                    nickname: req.session.solver[req.params.maker],
-                }
-            }],
         });
-        let word_list = maker.Solvers[0].word_list;
-        let key_state = maker.Solvers[0].key_state;
+        if ( maker === null ) {
+            if ( req.session.solver !== undefined ) {
+                req.session.solver[req.params.maker] = null;
+            }
+            res.send("Not Found");
+            return;
+        }
+        if ( req.session.solver === undefined || !req.session.solver[req.params.maker] ) {
+            res.send('no-session');
+            return;
+        }
+        const solvers = await maker.getSolvers({
+            attributes: ['word_list', 'key_state'],
+            where: {
+                nickname: req.session.solver[req.params.maker],
+            }
+        });
+        let word_list = solvers[0].word_list;
+        let key_state = solvers[0].key_state;
 
         word_list = JSON.parse(word_list);
         key_state = JSON.parse(key_state);
