@@ -6,6 +6,8 @@ const { getSolvers } = require('../function');
 
 const router = express.Router();
 
+let doubleChecked = {};
+
 router.get('/', async (req, res) => {
     try {
         if ( !req.session.maker ) {
@@ -50,13 +52,21 @@ router.post('/exist', async (req, res) => {
 
 router.delete('/delete/:maker', async (req, res) => {
     try {
-        req.session.maker = null;
-        await Maker.destroy({
-            where: {
-                nickname: req.params.maker,
-            }
-        });
-        res.end();
+        if ( doubleChecked[req.params.maker] === undefined ) {
+            doubleChecked[req.params.maker] = 1;
+            setTimeout(() => {
+                delete doubleChecked[req.params.maker];
+            }, 3000);
+            res.send('oneClick');
+        } else if ( doubleChecked [req.params.maker] === 1 ) {
+            req.session.maker = null;
+            await Maker.destroy({
+                where: {
+                    nickname: req.params.maker,
+                }
+            });
+            res.send('doubleClick');
+        }
     } catch (error) {
         console.error(error);
     }
