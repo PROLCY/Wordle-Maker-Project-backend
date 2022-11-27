@@ -8,7 +8,7 @@ const router = express.Router();
 
 let doubleChecked = {};
 
-router.get('/', async (req, res) => {
+router.get('/init', async (req, res) => {
     try {
         if ( !req.session.maker ) {
             res.send('no-session');
@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/init', async (req, res) => {
     try {
         req.session.maker = req.body.makerNickname;
         console.log(req.body.makerNickname);

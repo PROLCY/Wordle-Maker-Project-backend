@@ -5,7 +5,7 @@ const { getSolvers } = require('../function');
 
 const router = express.Router();
 
-router.get('/:maker', async (req, res) => {
+router.get('/:maker/init', async (req, res) => {
     try {
         console.log(req.session);
         const maker = await Maker.findOne({

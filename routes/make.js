@@ -66,9 +66,10 @@ router.post('/register', async (req, res) => {
         const nickname = req.body.nickname;
         const correct_word = req.body.correct_word;
         console.log(nickname, correct_word);
-        const URL = 'http://localhost:3000/solve/' + nickname;
-        const fullurl = req.protocol + '://' + req.get('host')+ '/solve/' + nickname;
-        console.log('url:', fullurl);
+        //const URL = 'http://localhost:4000/solve/' + nickname;
+        const URL = req.protocol + '://' + req.get('host')+ '/solve/' + nickname;
+        //console.log('url:', fullurl);
+        console.log(URL);
 
         const maker = await Maker.create({
             nickname: nickname,
