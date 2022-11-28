@@ -131,24 +131,17 @@ router.post('/:maker/register', async (req, res) => {
 router.post('/:maker/enter', async (req, res) => {
     // solver 테이블에 등록
     const solver = await Solver.findOne({
-        attributes: ['word_list', 'key_state'],
+        attributes: ['key_state'],
         where: {
             nickname: req.session.solver[req.params.maker],
             maker: req.params.maker,
         }
     });
-    let word_list = JSON.parse(solver.word_list);
     let key_state = JSON.parse(solver.key_state);
-    if ( word_list === null )
-        word_list = [];
-    word_list.splice(word_list.length - 1, 1, req.body.newWord);
     key_state = req.body.keyState;
 
-    
-    word_list = JSON.stringify(word_list);
     key_state = JSON.stringify(key_state);
     await Solver.update({
-        word_list: word_list,
         key_state: key_state,
     }, {
         where: {
@@ -156,9 +149,8 @@ router.post('/:maker/enter', async (req, res) => {
             maker: req.params.maker,
         }
     });
-    req.app.get('io').of('/loader').to(req.params.maker).emit('enter', await getSolvers(req.params.maker));
 
-    console.log(word_list, key_state);
+    console.log(key_state);
     res.end();
 });
 
