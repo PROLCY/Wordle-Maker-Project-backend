@@ -1,14 +1,12 @@
 const express = require('express');
-const axios = require('axios');
-const Word = require('../schemas/word');
-const { Maker, Solver } = require('../models');
+const { Maker } = require('../models');
 const { getSolvers } = require('../function');
 
 const router = express.Router();
 
 let doubleChecked = {};
 
-router.get('/init', async (req, res) => {
+router.get('/init', async (req, res) => { // 페이지 렌더링 시 세션 검증 요청 처리
     try {
         if ( !req.session.maker ) {
             res.send('no-session');
@@ -22,7 +20,7 @@ router.get('/init', async (req, res) => {
     }
 });
 
-router.post('/init', async (req, res) => {
+router.post('/init', async (req, res) => { // 페이지 렌더링 시 데이터 요청 처리
     try {
         req.session.maker = req.body.makerNickname;
         console.log(req.body.makerNickname);
@@ -32,10 +30,9 @@ router.post('/init', async (req, res) => {
     }
 });
 
-router.post('/exist', async (req, res) => {
+router.post('/exist', async (req, res) => { // 닉네임 존재 여부 검증 요청 처리
     try {
         const nickname = req.body.nickname;
-        console.log(nickname);
         const maker = await Maker.findOne({
             where: {
                 nickname: nickname
@@ -50,7 +47,7 @@ router.post('/exist', async (req, res) => {
     }
 });
 
-router.delete('/delete/:maker', async (req, res) => {
+router.delete('/delete/:maker', async (req, res) => { // wordle 삭제 요청 처리
     try {
         if ( doubleChecked[req.params.maker] === undefined ) {
             doubleChecked[req.params.maker] = 1;

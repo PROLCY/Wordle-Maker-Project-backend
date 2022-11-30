@@ -5,9 +5,8 @@ const { getSolvers } = require('../function');
 
 const router = express.Router();
 
-router.get('/:maker/init', async (req, res) => {
+router.get('/:maker/init', async (req, res) => { // 페이지 렌더링 시 요청 처리
     try {
-        console.log(req.session);
         const maker = await Maker.findOne({
             where: {
                 nickname: req.params.maker,
@@ -42,10 +41,6 @@ router.get('/:maker/init', async (req, res) => {
             key_state = {};
 
         let last_word, listIndex;
-
-        console.log("word_list", word_list);
-        console.log("word_list.length:", word_list.length);
-        console.log("element:", word_list[word_list.length - 1]);
         
         if ( word_list[word_list.length - 1].length === 0) {
             listIndex = word_list.length - 1;
@@ -59,8 +54,6 @@ router.get('/:maker/init', async (req, res) => {
             listIndex = word_list.length;
             last_word = [];
         }
-
-        console.log("last_word:", last_word);
 
         console.log("correct_word:", maker.correct_word, "word_list", word_list);
         res.send({
@@ -76,7 +69,7 @@ router.get('/:maker/init', async (req, res) => {
     }
 });
 
-router.post('/:maker/duplicated', async (req, res) => {
+router.post('/:maker/duplicated', async (req, res) => { // 닉네임 중복 판별 요청 처리
     try {
         const nickname = req.body.nickname;
         const sovler = await Solver.findOne({
@@ -94,10 +87,10 @@ router.post('/:maker/duplicated', async (req, res) => {
     }
 });
 
-router.post('/:maker/register', async (req, res) => {
+router.post('/:maker/register', async (req, res) => { // 등록 요청 처리, 세션 등록
     try {
         const nickname = req.body.nickname;
-        console.log(nickname, req.params.maker);
+        console.log("maker:", req.params.maker, "solver: ", nickname);
 
         const maker = await Maker.findOne({
             attributes: ['correct_word'],
@@ -118,7 +111,7 @@ router.post('/:maker/register', async (req, res) => {
         req.session.solver [req.params.maker]= nickname;
         console.log('session saved', req.session.solver[req.params.maker]);
 
-        req.app.get('io').of('/loader').to(req.params.maker).emit('enter', await getSolvers(req.params.maker));
+        req.app.get('io').of('/loader').to(req.params.maker).emit('typing', await getSolvers(req.params.maker));
 
         res.send({
             wordCorrect: maker.correct_word
@@ -128,8 +121,7 @@ router.post('/:maker/register', async (req, res) => {
     }
 });
 
-router.post('/:maker/enter', async (req, res) => {
-    // solver 테이블에 등록
+router.post('/:maker/enter', async (req, res) => { // 키 상태 등록 요청 처리
     const solver = await Solver.findOne({
         attributes: ['key_state'],
         where: {
@@ -149,13 +141,12 @@ router.post('/:maker/enter', async (req, res) => {
             maker: req.params.maker,
         }
     });
-
-    console.log(key_state);
+    
+    console.log('keyState saved', key_state);
     res.end();
 });
 
-router.post('/:maker/typing', async (req, res) => {
-    // solver 테이블에 등록
+router.post('/:maker/typing', async (req, res) => { // 문자 입력할 때마다 단어 등록 요청 처리
     const solver = await Solver.findOne({
         attributes: ['word_list'],
         where: {
@@ -164,14 +155,16 @@ router.post('/:maker/typing', async (req, res) => {
         }
     });
     let word_list = JSON.parse(solver.word_list);
-    console.log(req.body.newWord, req.body.listIndex);
+
     if ( word_list === null )
         word_list = [];
-    console.log(word_list.length);
+    
     if ( word_list.length === req.body.listIndex )
         word_list.push(req.body.newWord);
     else if ( word_list.length > req.body.listIndex)
         word_list.splice(req.body.listIndex, 1, req.body.newWord);
+
+    console.log("word_list saved:", word_list);
 
     word_list = JSON.stringify(word_list);
 
@@ -184,13 +177,13 @@ router.post('/:maker/typing', async (req, res) => {
         }
     });
 
-    req.app.get('io').of('/loader').to(req.params.maker).emit('enter', await getSolvers(req.params.maker));
+    req.app.get('io').of('/loader').to(req.params.maker).emit('typing', await getSolvers(req.params.maker));
 
-    console.log(word_list);
+    
     res.end();
 });
 
-router.post('/exist', async (req, res) => {
+router.post('/exist', async (req, res) => { // 단어 존재 여부 검증 처리
     try {
         const wordFound = await Word.find({ word: req.body.word });
         
@@ -209,4 +202,3 @@ router.post('/exist', async (req, res) => {
 });
 
 module.exports = router;
-

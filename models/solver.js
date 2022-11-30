@@ -31,7 +31,7 @@ module.exports = class Solver extends Sequelize.Model {
             collate: 'utf8_general_ci',
         });
     }
-    static associate(db) {
+    static associate(db) { // maker과 N 대 1 관계
         db.Solver.belongsTo(db.Maker, { foreignKey: 'maker', targetKey: 'nickname' });
     }
 };

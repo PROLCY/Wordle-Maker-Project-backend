@@ -1,10 +1,13 @@
 const mongoose = require('mongoose');
 
+const dotenv = require('dotenv');
+dotenv.config();
+
 const connect = () => {
     if (process.env.NODE_ENV !== 'production') {
         mongoose.set('debug', true);
     }
-    mongoose.connect('mongodb://ckd248:whoisbar248!@localhost:27017/admin', {
+    mongoose.connect(`mongodb://${process.env.MONGO_DB}@localhost:27017/admin`, {
         dbName: 'Wordle-Clone',
         useNewurlParser: true,
     }, (error) => {

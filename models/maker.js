@@ -32,7 +32,7 @@ module.exports = class Maker extends Sequelize.Model {
             collate: 'utf8_general_ci',
         });
     }
-    static associate(db) {
+    static associate(db) { // solver과 1 대 N 관계
         db.Maker.hasMany(db.Solver, { foreignKey: 'maker', sourceKey: 'nickname' });
     }
 };

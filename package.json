@@ -1,7 +1,7 @@
 {
-  "name": "wordle-clone-backend",
+  "name": "wordle-maker-backend",
   "version": "0.0.1",
-  "description": "Wordle-Clone-Project backend server",
+  "description": "Wordle-Maker-Project backend server",
   "main": "app.js",
   "scripts": {
     "start": "nodemon app"

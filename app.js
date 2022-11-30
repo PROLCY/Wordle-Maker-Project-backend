@@ -37,7 +37,7 @@ app.use(session({
     cookie: {
         httpOnly: true,
         secure: false,
-        maxAge: 1000 * 60 * 60 * 24 * 30,
+        maxAge: 1000 * 60 * 60 * 24 * 30, // 30일
     },
     name: 'session-cookie',
 }));
@@ -46,7 +46,7 @@ app.use('/', indexRouter);
 app.use('/solve', solveRouter);
 app.use('/make', makeRouter);
 app.use('/load', loadRouter);
-app.use('*', (req, res) => {
+app.use('*', (req, res) => { // 리액트 프로젝트 내에서 라우팅 담당
     res.sendFile(path.join(__dirname, '/build/index.html'));
 });
 
@@ -55,4 +55,3 @@ const server = app.listen(app.get('port'), () => {
 });
 
 webSocket(server, app);
-

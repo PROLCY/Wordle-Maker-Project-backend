@@ -1,6 +1,6 @@
 const { Maker, Solver} = require("./models");
 
-exports.getSolvers = async function  ( makerNickname ) {
+exports.getSolvers = async function  ( makerNickname ) { // makerNickname에 해당하는 모든 solvers 배열 반환
     const maker = await Maker.findOne({
         where: {
             nickname: makerNickname,
@@ -18,19 +18,5 @@ exports.getSolvers = async function  ( makerNickname ) {
             }))],
             wordList: solver.word_list === null ? [] : JSON.parse(solver.word_list),
         }));
-    return solvers;
-};
-
-exports.addSolver = async function ( makerNickname, data ) {
-    let  solvers = await module.exports.getSolvers(makerNickname);
-    const solver = solvers.find(solver => 
-        solver.nickname[0].map(info => info.text).join('') === data.nickname
-    );
-    const solverIndex = solvers.indexOf(solver);
-    if ( solver.wordList.length === data.listIndex )
-        solver.wordList.push(data.word);
-    else 
-        solver.wordList.splice(data.listIndex, 1, data.word);
-    solvers[solverIndex] = solver;
     return solvers;
 };

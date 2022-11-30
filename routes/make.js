@@ -1,11 +1,10 @@
 const express = require('express');
-const axios = require('axios');
 const Word = require('../schemas/word');
 const { Maker } = require('../models');
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/init', async (req, res) => { // 페이지 렌더링 시 오는 요청 처리
     try {
         if ( !req.session.maker ) {
             res.send('no-session');
@@ -26,7 +25,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/duplicated', async (req, res) => {
+router.post('/duplicated', async (req, res) => { // 닉네임 중복 판별 요청 처리
     try {
         const nickname = req.body.nickname;
         const maker = await Maker.findOne({
@@ -43,15 +42,17 @@ router.post('/duplicated', async (req, res) => {
     }
 });
 
-router.post('/exist', async (req, res) => {
+router.post('/exist', async (req, res) => { // 단어 존재 여부 검증 요청 처리
     try {
-        const wordFound = await Word.find({ word: req.body.word });
+        const wordFound = await Word.find({ 
+            word: req.body.word 
+        });
         
-        if ( !wordFound.length )
+        if ( !wordFound.length ) {
             res.send({
                 exist: false
             })
-        else {
+        } else {
             res.send({
                 exist: true
             })
@@ -61,15 +62,12 @@ router.post('/exist', async (req, res) => {
     }
 });
 
-router.post('/register', async (req, res) => {
+router.post('/register', async (req, res) => { // 닉네임과 정답 단어 등록 요청 처리, wordle URL 및 세션 생성
     try {
         const nickname = req.body.nickname;
         const correct_word = req.body.correct_word;
-        console.log(nickname, correct_word);
-        //const URL = 'http://localhost:4000/solve/' + nickname;
         const URL = req.protocol + '://' + req.get('host')+ '/solve/' + nickname;
-        //console.log('url:', fullurl);
-        console.log(URL);
+        console.log("nickname: ", nickname, "correct_word:", correct_word, "URL: ", URL);
 
         const maker = await Maker.create({
             nickname: nickname,
@@ -78,9 +76,10 @@ router.post('/register', async (req, res) => {
         });
 
         req.session.maker = nickname;
-        console.log("session saved", req.session.maker);    
+        console.log("session saved", req.session.maker); 
 
         res.send(URL);
+
     } catch (error) {
         console.error(error);
     }
